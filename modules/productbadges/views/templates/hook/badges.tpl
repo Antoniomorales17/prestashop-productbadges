@@ -4,5 +4,5 @@
               style="background-color: {$badge.color_bg|escape:'html':'UTF-8'}; color: {$badge.color_text|escape:'html':'UTF-8'};">
             {$badge.text|escape:'html':'UTF-8'}
         </span>
-    {foreach}
+    {/foreach}
 </div>

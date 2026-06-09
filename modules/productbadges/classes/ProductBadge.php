@@ -1,4 +1,7 @@
 <?php
+/**
+ * Copyright Blinders Group Test
+ */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -22,22 +25,16 @@ class ProductBadge extends ObjectModel
         'primary' => 'id_productbadges',
         'multilang' => true,
         'fields' => [
-            // Campos estándar
             'color_bg'   => ['type' => self::TYPE_STRING, 'validate' => 'isColor', 'required' => true, 'size' => 7],
             'color_text' => ['type' => self::TYPE_STRING, 'validate' => 'isColor', 'required' => true, 'size' => 7],
             'position'   => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'size' => 10],
             'active'     => ['type' => self::TYPE_BOOL, 'validate' => 'isBool', 'required' => true],
             'date_add'   => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
             'date_upd'   => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
-
-            // Campos multilenguaje
             'text'       => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isCleanHtml', 'required' => true, 'size' => 255],
         ],
     ];
 
-    /**
-     * Obtiene todas las etiquetas activas en un idioma
-     */
     public static function getAllBadges($id_lang)
     {
         $sql = new DbQuery();
@@ -49,9 +46,6 @@ class ProductBadge extends ObjectModel
         return Db::getInstance()->executeS($sql);
     }
 
-    /**
-     * Obtiene los IDs de las etiquetas asignadas a un producto
-     */
     public static function getProductBadgesIds($id_product)
     {
         $sql = new DbQuery();
@@ -69,9 +63,6 @@ class ProductBadge extends ObjectModel
         return $ids;
     }
 
-    /**
-     * Actualiza las etiquetas de un producto (Borra las viejas e inserta las nuevas)
-     */
     public static function updateProductBadges($id_product, $badges)
     {
         Db::getInstance()->delete('productbadges_product', 'id_product = ' . (int)$id_product);
@@ -87,9 +78,7 @@ class ProductBadge extends ObjectModel
             Db::getInstance()->insert('productbadges_product', $insert);
         }
     }
-    /**
-     * Obtiene las etiquetas activas de un producto con su texto traducido y límite
-     */
+
     public static function getBadgesByProduct($id_product, $id_lang, $limit = 3)
     {
         $sql = new DbQuery();

@@ -24,7 +24,6 @@ class ProductBadges extends Module
 
         $this->displayName = $this->l('Product Badges');
         $this->description = $this->l('Gestiona etiquetas visuales personalizadas para los productos.');
-
         $this->ps_versions_compliancy = ['min' => '1.7.0.0', 'max' => '1.7.8.11'];
     }
 
@@ -38,13 +37,12 @@ class ProductBadges extends Module
             && $this->installTab()
             && $this->registerHook('header')
             && $this->registerHook('displayProductPriceBlock')
+            && $this->registerHook('displayAdminProductsExtra')
+            && $this->registerHook('actionProductUpdate')
             && Configuration::updateValue('PRODUCTBADGES_GLOBAL_ACTIVE', 1)
             && Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', 1)
             && Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', 1)
             && Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', 3);
-            && Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', 3)
-            && $this->registerHook('displayAdminProductsExtra') // Pestaña en la ficha del producto
-            && $this->registerHook('actionProductUpdate'); // Guardado del producto
     }
 
     public function uninstall()
@@ -88,21 +86,16 @@ class ProductBadges extends Module
         return true;
     }
 
-    /**
-     * Controlador de la página de configuración del módulo
-     */
     public function getContent()
     {
         $output = '';
 
-        // Si el formulario ha sido enviado, procesamos los datos
         if (Tools::isSubmit('submitProductBadgesConfig')) {
             $globalActive = (int)Tools::getValue('PRODUCTBADGES_GLOBAL_ACTIVE');
             $showList = (int)Tools::getValue('PRODUCTBADGES_SHOW_LIST');
             $showProduct = (int)Tools::getValue('PRODUCTBADGES_SHOW_PRODUCT');
             $maxBadges = (int)Tools::getValue('PRODUCTBADGES_MAX_BADGES');
 
-            // Validación server-side requerida por la prueba
             if ($maxBadges < 1) {
                 $output .= $this->displayError($this->l('El número máximo de etiquetas debe ser mayor que 0.'));
             } else {
@@ -118,9 +111,6 @@ class ProductBadges extends Module
         return $output . $this->renderConfigForm();
     }
 
-    /**
-     * Genera el formulario usando la API de PrestaShop
-     */
     protected function renderConfigForm()
     {
         $helper = new HelperForm();
@@ -196,9 +186,6 @@ class ProductBadges extends Module
         return $helper->generateForm([$form]);
     }
 
-    /**
-     * Recupera los valores actuales de la base de datos para rellenar el formulario
-     */
     protected function getConfigFormValues()
     {
         return [
@@ -209,9 +196,6 @@ class ProductBadges extends Module
         ];
     }
 
-    /**
-     * Muestra la pestaña de etiquetas en la edición del producto
-     */
     public function hookDisplayAdminProductsExtra($params)
     {
         $id_product = (int)$params['id_product'];
@@ -226,22 +210,14 @@ class ProductBadges extends Module
         return $this->display(__FILE__, 'views/templates/admin/product_tab.tpl');
     }
 
-    /**
-     * Guarda las etiquetas seleccionadas cuando se guarda el producto
-     */
     public function hookActionProductUpdate($params)
     {
         $id_product = (int)$params['id_product'];
-        
-        // PrestaShop 1.7 pasa los datos del formulario extra por POST
         $badges = Tools::getValue('productbadges', []);
         
         ProductBadge::updateProductBadges($id_product, $badges);
     }
 
-    /**
-     * Carga el archivo CSS del módulo en el frontend
-     */
     public function hookHeader()
     {
         if (!Configuration::get('PRODUCTBADGES_GLOBAL_ACTIVE')) {
@@ -250,16 +226,12 @@ class ProductBadges extends Module
         $this->context->controller->addCSS($this->_path . 'views/css/productbadges.css', 'all');
     }
 
-    /**
-     * Muestra las etiquetas en el frontend (Listados y Ficha de producto)
-     */
     public function hookDisplayProductPriceBlock($params)
     {
         if (!Configuration::get('PRODUCTBADGES_GLOBAL_ACTIVE')) {
             return;
         }
 
-        // Evitamos que se duplique (este gancho se ejecuta varias veces por producto)
         if (isset($params['type']) && $params['type'] !== 'before_price') {
             return;
         }
@@ -281,7 +253,6 @@ class ProductBadges extends Module
         $is_list = in_array($page_name, ['category', 'search', 'index']);
         $is_product_page = ($page_name === 'product');
 
-        // Comprobamos los interruptores de configuración
         if ($is_list && !Configuration::get('PRODUCTBADGES_SHOW_LIST')) {
             return;
         }

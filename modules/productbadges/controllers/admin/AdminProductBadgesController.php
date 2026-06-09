@@ -15,11 +15,10 @@ class AdminProductBadgesController extends ModuleAdminController
         $this->table = 'productbadges';
         $this->className = 'ProductBadge';
         $this->identifier = 'id_productbadges';
-        $this->lang = true; // Habilita el guardado multilenguaje nativo
+        $this->lang = true;
 
         parent::__construct();
 
-        // Configuración de las columnas del listado (HelperList)
         $this->fields_list = [
             'id_productbadges' => [
                 'title' => $this->trans('ID', [], 'Admin.Global'),
@@ -48,14 +47,12 @@ class AdminProductBadgesController extends ModuleAdminController
             ]
         ];
 
-        // Añadimos las acciones estándar
         $this->addRowAction('edit');
         $this->addRowAction('delete');
     }
 
     public function renderForm()
     {
-        // Configuración del formulario de creación/edición (HelperForm)
         $this->fields_form = [
             'legend' => [
                 'title' => $this->l('Configuración de la Etiqueta'),
@@ -66,7 +63,7 @@ class AdminProductBadgesController extends ModuleAdminController
                     'type' => 'text',
                     'label' => $this->l('Texto'),
                     'name' => 'text',
-                    'lang' => 
+                    'lang' => true, // Aquí estaba el despiste corregido
                     'required' => true,
                     'desc' => $this->l('Texto que aparecerá en la etiqueta (ej. NUEVO, OFERTA)')
                 ],
