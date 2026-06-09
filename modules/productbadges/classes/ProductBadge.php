@@ -87,4 +87,20 @@ class ProductBadge extends ObjectModel
             Db::getInstance()->insert('productbadges_product', $insert);
         }
     }
+    /**
+     * Obtiene las etiquetas activas de un producto con su texto traducido y límite
+     */
+    public static function getBadgesByProduct($id_product, $id_lang, $limit = 3)
+    {
+        $sql = new DbQuery();
+        $sql->select('pb.*, pbl.text');
+        $sql->from('productbadges', 'pb');
+        $sql->leftJoin('productbadges_lang', 'pbl', 'pb.id_productbadges = pbl.id_productbadges AND pbl.id_lang = ' . (int)$id_lang);
+        $sql->innerJoin('productbadges_product', 'pbp', 'pb.id_productbadges = pbp.id_productbadges');
+        $sql->where('pbp.id_product = ' . (int)$id_product);
+        $sql->where('pb.active = 1');
+        $sql->limit((int)$limit);
+        
+        return Db::getInstance()->executeS($sql);
+    }
 }

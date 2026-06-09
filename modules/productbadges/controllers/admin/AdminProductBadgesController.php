@@ -66,7 +66,7 @@ class AdminProductBadgesController extends ModuleAdminController
                     'type' => 'text',
                     'label' => $this->l('Texto'),
                     'name' => 'text',
-                    'lang' => true, // Aparecerá el selector de idiomas junto al input
+                    'lang' => 
                     'required' => true,
                     'desc' => $this->l('Texto que aparecerá en la etiqueta (ej. NUEVO, OFERTA)')
                 ],

@@ -238,4 +238,69 @@ class ProductBadges extends Module
         
         ProductBadge::updateProductBadges($id_product, $badges);
     }
+
+    /**
+     * Carga el archivo CSS del módulo en el frontend
+     */
+    public function hookHeader()
+    {
+        if (!Configuration::get('PRODUCTBADGES_GLOBAL_ACTIVE')) {
+            return;
+        }
+        $this->context->controller->addCSS($this->_path . 'views/css/productbadges.css', 'all');
+    }
+
+    /**
+     * Muestra las etiquetas en el frontend (Listados y Ficha de producto)
+     */
+    public function hookDisplayProductPriceBlock($params)
+    {
+        if (!Configuration::get('PRODUCTBADGES_GLOBAL_ACTIVE')) {
+            return;
+        }
+
+        // Evitamos que se duplique (este gancho se ejecuta varias veces por producto)
+        if (isset($params['type']) && $params['type'] !== 'before_price') {
+            return;
+        }
+
+        $id_product = 0;
+        if (isset($params['product']['id_product'])) {
+            $id_product = (int)$params['product']['id_product'];
+        } elseif (isset($params['product']->id)) {
+            $id_product = (int)$params['product']->id;
+        } elseif (Tools::getValue('id_product')) {
+            $id_product = (int)Tools::getValue('id_product');
+        }
+
+        if (!$id_product) {
+            return;
+        }
+
+        $page_name = $this->context->controller->page_name;
+        $is_list = in_array($page_name, ['category', 'search', 'index']);
+        $is_product_page = ($page_name === 'product');
+
+        // Comprobamos los interruptores de configuración
+        if ($is_list && !Configuration::get('PRODUCTBADGES_SHOW_LIST')) {
+            return;
+        }
+        if ($is_product_page && !Configuration::get('PRODUCTBADGES_SHOW_PRODUCT')) {
+            return;
+        }
+
+        $limit = (int)Configuration::get('PRODUCTBADGES_MAX_BADGES', 3);
+        $badges = ProductBadge::getBadgesByProduct($id_product, $this->context->language->id, $limit);
+
+        if (empty($badges)) {
+            return;
+        }
+
+        $this->context->smarty->assign([
+            'badges' => $badges,
+            'is_product_page' => $is_product_page
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/hook/badges.tpl');
+    }
 }
