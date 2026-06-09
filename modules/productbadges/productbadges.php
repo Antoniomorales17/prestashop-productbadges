@@ -37,7 +37,11 @@ class ProductBadges extends Module
         return parent::install() 
             && $this->installTab()
             && $this->registerHook('header')
-            && $this->registerHook('displayProductPriceBlock');
+            && $this->registerHook('displayProductPriceBlock')
+            && Configuration::updateValue('PRODUCTBADGES_GLOBAL_ACTIVE', 1)
+            && Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', 1)
+            && Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', 1)
+            && Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', 3);
     }
 
     public function uninstall()
@@ -47,12 +51,13 @@ class ProductBadges extends Module
         }
 
         return parent::uninstall() 
-            && $this->uninstallTab();
+            && $this->uninstallTab()
+            && Configuration::deleteByName('PRODUCTBADGES_GLOBAL_ACTIVE')
+            && Configuration::deleteByName('PRODUCTBADGES_SHOW_LIST')
+            && Configuration::deleteByName('PRODUCTBADGES_SHOW_PRODUCT')
+            && Configuration::deleteByName('PRODUCTBADGES_MAX_BADGES');
     }
 
-    /**
-     * Crea la pestaña en el menú lateral del Back Office
-     */
     private function installTab()
     {
         $tab = new Tab();
@@ -64,16 +69,12 @@ class ProductBadges extends Module
             $tab->name[$lang['id_lang']] = 'Product Badges';
         }
         
-        // Lo colgamos del menú "Catálogo"
         $tab->id_parent = (int)Tab::getIdFromClassName('AdminCatalog');
         $tab->module = $this->name;
         
         return $tab->save();
     }
 
-    /**
-     * Elimina la pestaña al desinstalar (Cumple requisito de "sin pestañas huérfanas")
-     */
     private function uninstallTab()
     {
         $id_tab = (int)Tab::getIdFromClassName('AdminProductBadges');
@@ -82,5 +83,126 @@ class ProductBadges extends Module
             return $tab->delete();
         }
         return true;
+    }
+
+    /**
+     * Controlador de la página de configuración del módulo
+     */
+    public function getContent()
+    {
+        $output = '';
+
+        // Si el formulario ha sido enviado, procesamos los datos
+        if (Tools::isSubmit('submitProductBadgesConfig')) {
+            $globalActive = (int)Tools::getValue('PRODUCTBADGES_GLOBAL_ACTIVE');
+            $showList = (int)Tools::getValue('PRODUCTBADGES_SHOW_LIST');
+            $showProduct = (int)Tools::getValue('PRODUCTBADGES_SHOW_PRODUCT');
+            $maxBadges = (int)Tools::getValue('PRODUCTBADGES_MAX_BADGES');
+
+            // Validación server-side requerida por la prueba
+            if ($maxBadges < 1) {
+                $output .= $this->displayError($this->l('El número máximo de etiquetas debe ser mayor que 0.'));
+            } else {
+                Configuration::updateValue('PRODUCTBADGES_GLOBAL_ACTIVE', $globalActive);
+                Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', $showList);
+                Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', $showProduct);
+                Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', $maxBadges);
+                
+                $output .= $this->displayConfirmation($this->l('Configuración actualizada correctamente.'));
+            }
+        }
+
+        return $output . $this->renderConfigForm();
+    }
+
+    /**
+     * Genera el formulario usando la API de PrestaShop
+     */
+    protected function renderConfigForm()
+    {
+        $helper = new HelperForm();
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $helper->module = $this;
+        $helper->default_form_language = $this->context->language->id;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submitProductBadgesConfig';
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+
+        $helper->tpl_vars = [
+            'fields_value' => $this->getConfigFormValues(),
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id,
+        ];
+
+        $form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Configuración General de Etiquetas'),
+                    'icon' => 'icon-cogs',
+                ],
+                'input' => [
+                    [
+                        'type' => 'switch',
+                        'label' => $this->l('Activar módulo globalmente'),
+                        'name' => 'PRODUCTBADGES_GLOBAL_ACTIVE',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Sí', [], 'Admin.Global')],
+                            ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ],
+                    ],
+                    [
+                        'type' => 'switch',
+                        'label' => $this->l('Mostrar en listados de productos'),
+                        'name' => 'PRODUCTBADGES_SHOW_LIST',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'list_on', 'value' => 1, 'label' => $this->trans('Sí', [], 'Admin.Global')],
+                            ['id' => 'list_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ],
+                    ],
+                    [
+                        'type' => 'switch',
+                        'label' => $this->l('Mostrar en ficha de producto'),
+                        'name' => 'PRODUCTBADGES_SHOW_PRODUCT',
+                        'is_bool' => true,
+                        'values' => [
+                            ['id' => 'prod_on', 'value' => 1, 'label' => $this->trans('Sí', [], 'Admin.Global')],
+                            ['id' => 'prod_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ],
+                    ],
+                    [
+                        'type' => 'text',
+                        'label' => $this->l('Número máximo de badges visibles por producto'),
+                        'name' => 'PRODUCTBADGES_MAX_BADGES',
+                        'class' => 'fixed-width-xs',
+                        'required' => true,
+                        'desc' => $this->l('Si un producto tiene más etiquetas asignadas que este número, solo se mostrarán las primeras.')
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->trans('Guardar', [], 'Admin.Actions'),
+                ],
+            ],
+        ];
+
+        return $helper->generateForm([$form]);
+    }
+
+    /**
+     * Recupera los valores actuales de la base de datos para rellenar el formulario
+     */
+    protected function getConfigFormValues()
+    {
+        return [
+            'PRODUCTBADGES_GLOBAL_ACTIVE' => Configuration::get('PRODUCTBADGES_GLOBAL_ACTIVE', 1),
+            'PRODUCTBADGES_SHOW_LIST' => Configuration::get('PRODUCTBADGES_SHOW_LIST', 1),
+            'PRODUCTBADGES_SHOW_PRODUCT' => Configuration::get('PRODUCTBADGES_SHOW_PRODUCT', 1),
+            'PRODUCTBADGES_MAX_BADGES' => Configuration::get('PRODUCTBADGES_MAX_BADGES', 3),
+        ];
     }
 }
