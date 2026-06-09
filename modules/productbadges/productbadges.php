@@ -42,6 +42,9 @@ class ProductBadges extends Module
             && Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', 1)
             && Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', 1)
             && Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', 3);
+            && Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', 3)
+            && $this->registerHook('displayAdminProductsExtra') // Pestaña en la ficha del producto
+            && $this->registerHook('actionProductUpdate'); // Guardado del producto
     }
 
     public function uninstall()
@@ -204,5 +207,35 @@ class ProductBadges extends Module
             'PRODUCTBADGES_SHOW_PRODUCT' => Configuration::get('PRODUCTBADGES_SHOW_PRODUCT', 1),
             'PRODUCTBADGES_MAX_BADGES' => Configuration::get('PRODUCTBADGES_MAX_BADGES', 3),
         ];
+    }
+
+    /**
+     * Muestra la pestaña de etiquetas en la edición del producto
+     */
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        $id_product = (int)$params['id_product'];
+        $badges = ProductBadge::getAllBadges($this->context->language->id);
+        $assigned = ProductBadge::getProductBadgesIds($id_product);
+
+        $this->context->smarty->assign([
+            'badges' => $badges,
+            'assigned_badges' => $assigned,
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/admin/product_tab.tpl');
+    }
+
+    /**
+     * Guarda las etiquetas seleccionadas cuando se guarda el producto
+     */
+    public function hookActionProductUpdate($params)
+    {
+        $id_product = (int)$params['id_product'];
+        
+        // PrestaShop 1.7 pasa los datos del formulario extra por POST
+        $badges = Tools::getValue('productbadges', []);
+        
+        ProductBadge::updateProductBadges($id_product, $badges);
     }
 }

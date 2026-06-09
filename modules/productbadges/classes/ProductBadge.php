@@ -34,4 +34,57 @@ class ProductBadge extends ObjectModel
             'text'       => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isCleanHtml', 'required' => true, 'size' => 255],
         ],
     ];
+
+    /**
+     * Obtiene todas las etiquetas activas en un idioma
+     */
+    public static function getAllBadges($id_lang)
+    {
+        $sql = new DbQuery();
+        $sql->select('pb.*, pbl.text');
+        $sql->from('productbadges', 'pb');
+        $sql->leftJoin('productbadges_lang', 'pbl', 'pb.id_productbadges = pbl.id_productbadges AND pbl.id_lang = ' . (int)$id_lang);
+        $sql->where('pb.active = 1');
+        
+        return Db::getInstance()->executeS($sql);
+    }
+
+    /**
+     * Obtiene los IDs de las etiquetas asignadas a un producto
+     */
+    public static function getProductBadgesIds($id_product)
+    {
+        $sql = new DbQuery();
+        $sql->select('id_productbadges');
+        $sql->from('productbadges_product');
+        $sql->where('id_product = ' . (int)$id_product);
+        
+        $result = Db::getInstance()->executeS($sql);
+        $ids = [];
+        if ($result) {
+            foreach ($result as $row) {
+                $ids[] = $row['id_productbadges'];
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * Actualiza las etiquetas de un producto (Borra las viejas e inserta las nuevas)
+     */
+    public static function updateProductBadges($id_product, $badges)
+    {
+        Db::getInstance()->delete('productbadges_product', 'id_product = ' . (int)$id_product);
+        
+        if (!empty($badges) && is_array($badges)) {
+            $insert = [];
+            foreach ($badges as $id_badge) {
+                $insert[] = [
+                    'id_productbadges' => (int)$id_badge,
+                    'id_product' => (int)$id_product
+                ];
+            }
+            Db::getInstance()->insert('productbadges_product', $insert);
+        }
+    }
 }
