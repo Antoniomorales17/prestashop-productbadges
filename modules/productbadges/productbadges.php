@@ -5,6 +5,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once dirname(__FILE__) . '/classes/ProductBadge.php';
+
 class ProductBadges extends Module
 {
     public function __construct()
