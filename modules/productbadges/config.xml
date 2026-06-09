@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>productbadges</name>
-    <displayName><![CDATA[Product Badges - Blinders Test]]></displayName>
+    <displayName><![CDATA[Product Badges]]></displayName>
     <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Gestiona etiquetas visuales personalizadas para los productos del catálogo.]]></description>
+    <description><![CDATA[Gestiona etiquetas visuales personalizadas para los productos.]]></description>
     <author><![CDATA[Antonio Morales]]></author>
     <tab><![CDATA[front_office_features]]></tab>
     <is_configurable>1</is_configurable>
     <need_instance>0</need_instance>
-    <limited_countries></limited_countries>
+	<limited_countries></limited_countries>
 </module>

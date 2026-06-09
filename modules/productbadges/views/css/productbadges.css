@@ -1,17 +1,23 @@
+
 .product-miniature {
-    position: relative; 
+    position: relative !important;
+}
+
+.product-miniature .product-description {
+    position: static !important;
 }
 
 .product-badges-container.on-list-page {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 10px;      
+    left: 0;
+    width: 100%;     
+    box-sizing: border-box;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    pointer-events: none;
+    gap: 5px;
+    pointer-events: none; 
 }
 
 .product-badges-container.on-product-page {
@@ -22,19 +28,12 @@
 
 .badge-item {
     display: inline-block;
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 3px 8px;
+    font-size: 16px;
     font-weight: bold;
     text-transform: uppercase;
     border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     width: fit-content;
 }
 
-.badge-position-left {
-    align-self: flex-start;
-}
-
-.badge-position-right {
-    align-self: flex-end;
-}
