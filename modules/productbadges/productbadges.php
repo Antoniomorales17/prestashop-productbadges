@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Copyright Blinders Group Test
+ */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -16,7 +18,7 @@ class ProductBadges extends Module
         $this->version = '1.0.0';
         $this->author = 'Antonio Morales';
         $this->need_instance = 0;
-        $this->bootstrap = true; // Requisito obligatorio
+        $this->bootstrap = true;
 
         parent::__construct();
 
@@ -33,8 +35,9 @@ class ProductBadges extends Module
         }
 
         return parent::install() 
-            && $this->registerHook('header') // Para CSS/JS
-            && $this->registerHook('displayProductPriceBlock'); // Para pintar en los listados
+            && $this->installTab()
+            && $this->registerHook('header')
+            && $this->registerHook('displayProductPriceBlock');
     }
 
     public function uninstall()
@@ -43,6 +46,41 @@ class ProductBadges extends Module
             require_once dirname(__FILE__) . '/sql/uninstall.php';
         }
 
-        return parent::uninstall();
+        return parent::uninstall() 
+            && $this->uninstallTab();
+    }
+
+    /**
+     * Crea la pestaña en el menú lateral del Back Office
+     */
+    private function installTab()
+    {
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = 'AdminProductBadges';
+        $tab->name = [];
+        
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = 'Product Badges';
+        }
+        
+        // Lo colgamos del menú "Catálogo"
+        $tab->id_parent = (int)Tab::getIdFromClassName('AdminCatalog');
+        $tab->module = $this->name;
+        
+        return $tab->save();
+    }
+
+    /**
+     * Elimina la pestaña al desinstalar (Cumple requisito de "sin pestañas huérfanas")
+     */
+    private function uninstallTab()
+    {
+        $id_tab = (int)Tab::getIdFromClassName('AdminProductBadges');
+        if ($id_tab) {
+            $tab = new Tab($id_tab);
+            return $tab->delete();
+        }
+        return true;
     }
 }
