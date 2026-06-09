@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright Blinders Group Test
- */
 
 if (!defined('_PS_VERSION_')) {
     exit;

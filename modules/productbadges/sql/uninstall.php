@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright Blinders Group Test
- */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -19,3 +16,5 @@ foreach ($sql as $query) {
         return false;
     }
 }
+
+return true;

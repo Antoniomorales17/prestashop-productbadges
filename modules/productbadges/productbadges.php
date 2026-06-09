@@ -29,11 +29,13 @@ class ProductBadges extends Module
 
     public function install()
     {
+        $sqlResult = true;
         if (file_exists(dirname(__FILE__) . '/sql/install.php')) {
-            require_once dirname(__FILE__) . '/sql/install.php';
+            $sqlResult = require dirname(__FILE__) . '/sql/install.php';
         }
 
-        return parent::install() 
+        return $sqlResult
+            && parent::install()
             && $this->installTab()
             && $this->registerHook('header')
             && $this->registerHook('displayProductPriceBlock')
@@ -47,11 +49,13 @@ class ProductBadges extends Module
 
     public function uninstall()
     {
+        $sqlResult = true;
         if (file_exists(dirname(__FILE__) . '/sql/uninstall.php')) {
-            require_once dirname(__FILE__) . '/sql/uninstall.php';
+            $sqlResult = require dirname(__FILE__) . '/sql/uninstall.php';
         }
 
-        return parent::uninstall() 
+        return $sqlResult
+            && parent::uninstall()
             && $this->uninstallTab()
             && Configuration::deleteByName('PRODUCTBADGES_GLOBAL_ACTIVE')
             && Configuration::deleteByName('PRODUCTBADGES_SHOW_LIST')
@@ -61,6 +65,10 @@ class ProductBadges extends Module
 
     private function installTab()
     {
+        if ((int)Tab::getIdFromClassName('AdminProductBadges')) {
+            return true;
+        }
+
         $tab = new Tab();
         $tab->active = 1;
         $tab->class_name = 'AdminProductBadges';
@@ -96,12 +104,12 @@ class ProductBadges extends Module
             $showProduct = (int)Tools::getValue('PRODUCTBADGES_SHOW_PRODUCT');
             $maxBadges = (int)Tools::getValue('PRODUCTBADGES_MAX_BADGES');
 
-            if ($maxBadges < 1) {
-                $output .= $this->displayError($this->l('El número máximo de etiquetas debe ser mayor que 0.'));
+            if ($maxBadges < 1 || $maxBadges > 10) {
+                $output .= $this->displayError($this->l('El número máximo de etiquetas debe estar entre 1 y 10.'));
             } else {
-                Configuration::updateValue('PRODUCTBADGES_GLOBAL_ACTIVE', $globalActive);
-                Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', $showList);
-                Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', $showProduct);
+                Configuration::updateValue('PRODUCTBADGES_GLOBAL_ACTIVE', (int)(bool)$globalActive);
+                Configuration::updateValue('PRODUCTBADGES_SHOW_LIST', (int)(bool)$showList);
+                Configuration::updateValue('PRODUCTBADGES_SHOW_PRODUCT', (int)(bool)$showProduct);
                 Configuration::updateValue('PRODUCTBADGES_MAX_BADGES', $maxBadges);
                 
                 $output .= $this->displayConfirmation($this->l('Configuración actualizada correctamente.'));

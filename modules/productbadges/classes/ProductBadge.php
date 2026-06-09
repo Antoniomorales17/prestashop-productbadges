@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright Blinders Group Test
- */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -9,6 +6,9 @@ if (!defined('_PS_VERSION_')) {
 
 class ProductBadge extends ObjectModel
 {
+    const POSITION_LEFT = 'left';
+    const POSITION_RIGHT = 'right';
+
     public $id_productbadges;
     public $color_bg;
     public $color_text;
@@ -34,6 +34,20 @@ class ProductBadge extends ObjectModel
             'text'       => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isCleanHtml', 'required' => true, 'size' => 255],
         ],
     ];
+
+    public function validateFields($die = true, $error_return = false)
+    {
+        if (!in_array($this->position, [self::POSITION_LEFT, self::POSITION_RIGHT], true)) {
+            $message = Tools::displayError('Invalid badge position.');
+            if ($die) {
+                die($message);
+            }
+
+            return $error_return ? $message : false;
+        }
+
+        return parent::validateFields($die, $error_return);
+    }
 
     public static function getAllBadges($id_lang)
     {
@@ -69,13 +83,22 @@ class ProductBadge extends ObjectModel
         
         if (!empty($badges) && is_array($badges)) {
             $insert = [];
+            $badges = array_unique(array_map('intval', $badges));
+
             foreach ($badges as $id_badge) {
+                if ($id_badge <= 0) {
+                    continue;
+                }
+
                 $insert[] = [
-                    'id_productbadges' => (int)$id_badge,
-                    'id_product' => (int)$id_product
+                    'id_productbadges' => $id_badge,
+                    'id_product' => (int)$id_product,
                 ];
             }
-            Db::getInstance()->insert('productbadges_product', $insert);
+
+            if (!empty($insert)) {
+                Db::getInstance()->insert('productbadges_product', $insert);
+            }
         }
     }
 

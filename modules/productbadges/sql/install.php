@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright Blinders Group Test
- */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -37,9 +34,10 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'productbadges_product` 
     KEY `id_product` (`id_product`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
-// Ejecutar todas las consultas de forma segura
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {
         return false;
     }
 }
+
+return true;

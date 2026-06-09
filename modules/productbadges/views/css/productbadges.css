@@ -1,5 +1,5 @@
 .product-miniature {
-    position: relative; /* Clave para el posicionamiento absoluto */
+    position: relative; 
 }
 
 .product-badges-container.on-list-page {

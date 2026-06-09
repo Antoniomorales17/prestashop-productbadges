@@ -7,9 +7,9 @@
             {foreach from=$badges item=badge}
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="productbadges[]" value="{$badge.id_productbadges}" {if in_array($badge.id_productbadges, $assigned_badges)}checked="checked"{/if}>
-                        <span style="background-color: {$badge.color_bg}; color: {$badge.color_text}; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px;">
-                            {$badge.text}
+                        <input type="checkbox" name="productbadges[]" value="{$badge.id_productbadges|escape:'html':'UTF-8'}" {if in_array($badge.id_productbadges, $assigned_badges)}checked="checked"{/if}>
+                        <span style="background-color: {$badge.color_bg|escape:'html':'UTF-8'}; color: {$badge.color_text|escape:'html':'UTF-8'}; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px;">
+                            {$badge.text|escape:'html':'UTF-8'}
                         </span>
                     </label>
                 </div>
